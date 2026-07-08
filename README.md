@@ -2,60 +2,34 @@
 
 WriteWise Agent is an AI agent coding competition project based on the
 [Prisma Next.js Auth Starter](https://github.com/prisma/nextjs-auth-starter).
+The starter's auth and Prisma foundation are preserved, while the product
+domain has been replaced with an AI-native writing coach.
 
-Phase 1 rebranded the starter. Phase 2 replaced the starter blog/post demo with
-the first original writing-training increment: an authenticated writing prompt
-bank, essay editor, and private essay history. Phase 3 adds structured AI essay
-feedback with a safe mock provider for local development. Phase 4 adds a
-personalized 4-week training plan generated from saved AI feedback.
+## Competition Increments
 
-## Phase 2 Features
+- Phase 1: Bootstrap and rebrand from the Prisma starter.
+- Phase 2: Writing core domain with prompt bank, essay editor, essay history,
+  and authenticated ownership checks.
+- Phase 3: Structured AI essay feedback with mock and optional
+  OpenAI-compatible providers, Zod validation, and prompt-injection mitigation.
+- Phase 4: Personalized 4-week training plans generated from saved AI feedback,
+  with task completion tracking.
+- Phase 5: Security hardening, rate limiting, tests, CI, and AI-native evidence
+  documentation.
 
-- Writing prompt bank with category, difficulty, target skill, word limit, and
-  estimated completion time
-- Essay editor for authenticated users
-- Approximate word count and basic submission validation
-- Essay history scoped to the current user
-- Essay detail pages with prompt context
-- Authenticated ownership checks so users cannot view another user's essays by
-  guessing URLs
+## Current Features
 
-## Phase 3 Features
-
-- AI structured feedback for submitted essays
-- Rubric scores for task response, coherence, lexical range, and grammar
-- Sentence-level feedback, improved version, weakness tags, and next exercise
-- Deterministic mock provider when no real AI API key is configured
+- Authenticated writing prompt bank
+- Essay submission with input validation and approximate word count
+- Private essay history and owner-only essay detail pages
+- AI structured feedback with rubric scores, sentence feedback, improved
+  version, weakness tags, and next exercise
+- Deterministic mock AI provider for local development
 - Optional OpenAI-compatible provider through server-side environment variables
-- Strict Zod validation before AI output is saved
-- Prompt-injection mitigation using system instructions and essay delimiters
-
-## Phase 4 Features
-
-- Personalized 4-week training plan generation from the latest AI feedback
-- Exactly 4 weeks with 5 practice days per week
-- Plan progress tracking through completed and uncompleted tasks
-- Deterministic mock plan provider for local demos
-- Optional OpenAI-compatible plan provider through the existing AI environment
-  variables
-- Owner-only plan access and task updates
-- Zod validation before generated plans are saved
-
-## Reused Foundation
-
-- Next.js App Router application structure
-- NextAuth.js credentials authentication
-- Prisma ORM and Prisma Postgres configuration
-- Existing user registration and login flow
-- Project build, lint, and seed tooling
-
-## Planned Later Increments
-
-- AI-powered structured feedback for submitted essays
-- Feedback persistence linked to authenticated users
-- Writing rubric, score, and issue taxonomy
-- Learner dashboard for progress and revision activity
-- Training-plan generation based on recurring writing issues
+- Personalized 4-week training plans with exactly 4 weeks x 5 practice days
+- Plan task completion and simple persisted progress
+- Server-side ownership checks for essays, feedback, plans, and plan items
+- In-memory demo rate limiting for auth attempts and expensive AI actions
 
 ## Local Setup
 
@@ -77,22 +51,10 @@ AI_MODEL=""
 
 Do not commit real database URLs, API keys, or auth secrets.
 
-Apply the Phase 2 migration:
+Apply migrations:
 
 ```bash
-npx prisma migrate dev --name writing_core
-```
-
-Apply the Phase 3 migration:
-
-```bash
-npx prisma migrate dev --name ai_feedback
-```
-
-Apply the Phase 4 migration:
-
-```bash
-npx prisma migrate dev --name training_plan
+npx prisma migrate dev
 ```
 
 Seed the prompt bank:
@@ -109,31 +71,54 @@ npm run dev
 
 Open `http://localhost:3000`.
 
-## Validation
+## Useful Commands
 
 ```bash
+npx prisma generate
 npm run lint
-npx tsc --noEmit
+npm run typecheck
+npm run test
 npm run build
 ```
 
-Phase 2 validation results are recorded in
-[`docs/agent-logs/02-writing-core.md`](docs/agent-logs/02-writing-core.md).
-Phase 3 validation results are recorded in
-[`docs/agent-logs/03-ai-feedback.md`](docs/agent-logs/03-ai-feedback.md).
-Phase 4 validation results are recorded in
-[`docs/agent-logs/04-training-plan.md`](docs/agent-logs/04-training-plan.md).
+`npm run build` runs `prisma migrate deploy` before `next build`, so it needs a
+valid `DATABASE_URL`.
 
-## AI Safety
+## Environment Variables
 
-AI feedback is generated server-side. API keys are never exposed to client
-components. The app defaults to `AI_PROVIDER=mock` when no provider is set, and
-OpenAI-compatible feedback requires `OPENAI_API_KEY` on the server.
+- `DATABASE_URL`: Prisma database connection string.
+- `AUTH_SECRET` or `NEXTAUTH_SECRET`: Auth secret used by NextAuth.
+- `AI_PROVIDER`: `mock` or `openai`; defaults to `mock` in server helpers.
+- `OPENAI_API_KEY`: required only when `AI_PROVIDER=openai`.
+- `AI_MODEL`: optional OpenAI-compatible model name; defaults server-side.
 
-Provider output is validated with Zod before being stored. Essay content is
-wrapped in clear delimiters and treated only as content to evaluate, not as
-instructions. See [`SECURITY.md`](SECURITY.md) for details.
+## CI
 
-Training plans are generated from saved AI feedback, validated with Zod, stored
-as structured records, and scoped to the authenticated owner for viewing and
-task updates.
+GitHub Actions workflow lives at `.github/workflows/ci.yml`. It runs on push and
+pull request with a local PostgreSQL service and `AI_PROVIDER=mock`.
+
+CI steps:
+
+- Install dependencies
+- Generate Prisma client
+- Lint
+- Typecheck
+- Unit tests
+- Build
+
+CI does not require a real OpenAI API key.
+
+## Security And Validation
+
+See [`SECURITY.md`](SECURITY.md). The project uses server-side ownership
+queries, shared essay validation, strict Zod schemas for AI outputs and training
+plans, prompt-injection delimiters, safe error messages, and process-local rate
+limiting for demo hardening.
+
+## AI Agent Workflow
+
+The project was built through a human-in-the-loop AI coding-agent workflow.
+Codex implemented scoped phases, while humans reviewed, tested, and decided
+what to keep. Agent logs in `docs/agent-logs` and architecture decision records
+in `docs/adr` document the development trail. See
+[`docs/AI_NATIVE_WORKFLOW.md`](docs/AI_NATIVE_WORKFLOW.md).

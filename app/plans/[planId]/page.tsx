@@ -14,7 +14,7 @@ export default async function PlanDetailPage({
   const { planId } = await params;
   const id = Number(planId);
 
-  if (!Number.isInteger(id)) {
+  if (!Number.isInteger(id) || id <= 0) {
     notFound();
   }
 

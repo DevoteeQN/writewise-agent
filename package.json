@@ -8,6 +8,8 @@
     "build": "npx prisma migrate deploy && next build",
     "start": "next start",
     "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
     "postinstall": "npx prisma generate"
   },
   "dependencies": {
@@ -33,7 +35,8 @@
     "prisma": "7.0.0",
     "tailwindcss": "^4.1.17",
     "tsx": "^4.19.2",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.10"
   },
   "overrides": {
     "@types/react": "19.2.5",

@@ -10,7 +10,7 @@ export async function togglePlanItem(formData: FormData) {
   const itemId = Number(formData.get("itemId"));
   const completed = formData.get("completed") === "true";
 
-  if (!Number.isInteger(planId) || !Number.isInteger(itemId)) {
+  if (!Number.isInteger(planId) || planId <= 0 || !Number.isInteger(itemId) || itemId <= 0) {
     return;
   }
 

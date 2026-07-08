@@ -1,20 +1,13 @@
 "use server";
 
 import prisma from "@/lib/prisma";
+import { validateEssayInput } from "@/lib/essay-validation";
 import { requireUserId } from "@/lib/session";
 import { redirect } from "next/navigation";
-
-const MAX_ESSAY_CHARACTERS = 12000;
-const MAX_TITLE_CHARACTERS = 140;
 
 export type SubmitEssayState = {
   error?: string;
 };
-
-function countWords(content: string) {
-  const words = content.trim().match(/\S+/g);
-  return words ? words.length : 0;
-}
 
 export async function submitEssay(
   promptId: number,
@@ -22,29 +15,19 @@ export async function submitEssay(
   formData: FormData
 ): Promise<SubmitEssayState> {
   const userId = await requireUserId();
-  const title = String(formData.get("title") ?? "").trim();
-  const content = String(formData.get("content") ?? "").trim();
+  const validation = validateEssayInput(formData.get("title"), formData.get("content"));
 
-  if (!title) {
-    return { error: "Add a title before submitting your essay." };
+  if (!validation.ok) {
+    return { error: validation.error };
   }
 
-  if (title.length > MAX_TITLE_CHARACTERS) {
-    return { error: `Keep the title under ${MAX_TITLE_CHARACTERS} characters.` };
-  }
-
-  if (!content) {
-    return { error: "Essay content cannot be empty." };
-  }
-
-  if (content.length > MAX_ESSAY_CHARACTERS) {
-    return { error: `Keep the essay under ${MAX_ESSAY_CHARACTERS} characters.` };
-  }
-
-  const wordCount = countWords(content);
   let essayId: number;
 
   try {
+    if (!Number.isInteger(promptId) || promptId <= 0) {
+      return { error: "The selected prompt is invalid." };
+    }
+
     const prompt = await prisma.writingPrompt.findUnique({
       where: { id: promptId },
       select: { id: true },
@@ -58,10 +41,10 @@ export async function submitEssay(
       data: {
         userId,
         promptId,
-        title,
-        content,
+        title: validation.title,
+        content: validation.content,
         status: "submitted",
-        wordCount,
+        wordCount: validation.wordCount,
         submittedAt: new Date(),
       },
       select: { id: true },

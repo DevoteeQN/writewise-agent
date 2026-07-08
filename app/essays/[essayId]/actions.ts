@@ -2,6 +2,7 @@
 
 import { generateAIFeedback } from "@/lib/ai-feedback/service";
 import { generateTrainingPlan } from "@/lib/training-plan/service";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { requireUserId } from "@/lib/session";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
@@ -17,6 +18,8 @@ export type GenerateTrainingPlanState = {
 
 const MAX_ESSAY_CHARACTERS = 12000;
 const RATE_LIMIT_MS = 60 * 1000;
+const FEEDBACK_RATE_LIMIT_MS = 5 * 60 * 1000;
+const TRAINING_PLAN_RATE_LIMIT_MS = 5 * 60 * 1000;
 
 export async function generateFeedbackForEssay(
   essayId: number,
@@ -26,6 +29,18 @@ export async function generateFeedbackForEssay(
   const userId = await requireUserId();
 
   try {
+    if (!Number.isInteger(essayId) || essayId <= 0) {
+      return { error: "Essay not found." };
+    }
+
+    const rateLimit = checkRateLimit(`feedback:${userId}`, 5, FEEDBACK_RATE_LIMIT_MS);
+
+    if (!rateLimit.ok) {
+      return {
+        error: `Too many feedback requests. Try again in ${rateLimit.retryAfterSeconds} seconds.`,
+      };
+    }
+
     const essay = await prisma.essay.findFirst({
       where: {
         id: essayId,
@@ -119,6 +134,18 @@ export async function generateTrainingPlanForEssay(
   let planId: number;
 
   try {
+    if (!Number.isInteger(essayId) || essayId <= 0) {
+      return { error: "Essay not found." };
+    }
+
+    const rateLimit = checkRateLimit(`training-plan:${userId}`, 3, TRAINING_PLAN_RATE_LIMIT_MS);
+
+    if (!rateLimit.ok) {
+      return {
+        error: `Too many training plan requests. Try again in ${rateLimit.retryAfterSeconds} seconds.`,
+      };
+    }
+
     const essay = await prisma.essay.findFirst({
       where: {
         id: essayId,

@@ -2,6 +2,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { type NextAuthOptions } from "next-auth";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export const authOptions = {
   providers: [
@@ -17,15 +18,22 @@ export const authOptions = {
           throw new Error("Invalid credentials");
         }
 
+        const email = credentials.email.toLowerCase().trim();
+        const rateLimit = checkRateLimit(`auth:${email}`, 10, 5 * 60 * 1000);
+
+        if (!rateLimit.ok) {
+          throw new Error("Too many attempts. Please try again later.");
+        }
+
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
+          where: { email },
         });
 
         if (!user) {
           return await prisma.user.create({
             data: {
               name: credentials.name ?? credentials.email,
-              email: credentials.email,
+              email,
               password: await bcrypt.hash(credentials.password, 10),
             },
           });

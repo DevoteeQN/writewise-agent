@@ -1,5 +1,6 @@
 import "server-only";
 
+import { getAIProviderConfig } from "@/lib/env";
 import { trainingPlanSchema, type TrainingPlanOutput } from "./schema";
 
 export type TrainingPlanInput = {
@@ -18,7 +19,6 @@ export type TrainingPlanProviderResult = {
   model: string;
 };
 
-const DEFAULT_OPENAI_MODEL = "gpt-4o-mini";
 const DEFAULT_SKILLS = [
   "coherence",
   "grammar accuracy",
@@ -27,11 +27,6 @@ const DEFAULT_SKILLS = [
   "evidence development",
   "paragraph structure",
 ];
-
-function normalizeProvider() {
-  const provider = process.env.AI_PROVIDER?.trim().toLowerCase();
-  return provider === "openai" ? "openai" : "mock";
-}
 
 function normalizeWeaknessTags(tags: string[]) {
   const cleaned = tags
@@ -112,12 +107,9 @@ Next exercise: ${input.nextExercise}
 }
 
 async function generateOpenAITrainingPlan(input: TrainingPlanInput): Promise<TrainingPlanProviderResult> {
-  const apiKey = process.env.OPENAI_API_KEY;
-  const model = process.env.AI_MODEL?.trim() || DEFAULT_OPENAI_MODEL;
-
-  if (!apiKey) {
-    throw new Error("AI_PROVIDER=openai requires OPENAI_API_KEY on the server.");
-  }
+  const config = getAIProviderConfig();
+  const apiKey = config.openAIApiKey;
+  const model = config.model;
 
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -154,7 +146,7 @@ async function generateOpenAITrainingPlan(input: TrainingPlanInput): Promise<Tra
 }
 
 export async function generateTrainingPlan(input: TrainingPlanInput): Promise<TrainingPlanProviderResult> {
-  if (normalizeProvider() === "openai") {
+  if (getAIProviderConfig().provider === "openai") {
     return generateOpenAITrainingPlan(input);
   }
 

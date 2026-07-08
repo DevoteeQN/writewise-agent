@@ -14,7 +14,7 @@ export default async function WritePage({
   const { promptId } = await params;
   const id = Number(promptId);
 
-  if (!Number.isInteger(id)) {
+  if (!Number.isInteger(id) || id <= 0) {
     notFound();
   }
 

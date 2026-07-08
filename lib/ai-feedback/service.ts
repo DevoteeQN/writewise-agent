@@ -1,5 +1,6 @@
 import "server-only";
 
+import { getAIProviderConfig } from "@/lib/env";
 import { aiFeedbackSchema, type AIFeedbackOutput } from "./schema";
 
 export type FeedbackEssayInput = {
@@ -17,13 +18,6 @@ export type FeedbackProviderResult = {
   provider: string;
   model: string;
 };
-
-const DEFAULT_OPENAI_MODEL = "gpt-4o-mini";
-
-function normalizeProvider() {
-  const provider = process.env.AI_PROVIDER?.trim().toLowerCase();
-  return provider === "openai" ? "openai" : "mock";
-}
 
 function getSentences(content: string) {
   return (
@@ -110,12 +104,9 @@ ${input.essayContent}
 }
 
 async function generateOpenAIFeedback(input: FeedbackEssayInput): Promise<FeedbackProviderResult> {
-  const apiKey = process.env.OPENAI_API_KEY;
-  const model = process.env.AI_MODEL?.trim() || DEFAULT_OPENAI_MODEL;
-
-  if (!apiKey) {
-    throw new Error("AI_PROVIDER=openai requires OPENAI_API_KEY on the server.");
-  }
+  const config = getAIProviderConfig();
+  const apiKey = config.openAIApiKey;
+  const model = config.model;
 
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -154,7 +145,7 @@ async function generateOpenAIFeedback(input: FeedbackEssayInput): Promise<Feedba
 }
 
 export async function generateAIFeedback(input: FeedbackEssayInput): Promise<FeedbackProviderResult> {
-  const provider = normalizeProvider();
+  const provider = getAIProviderConfig().provider;
 
   if (provider === "openai") {
     const result = await generateOpenAIFeedback(input);

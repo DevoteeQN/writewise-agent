@@ -28,7 +28,7 @@ export default async function EssayDetailPage({
   const { essayId } = await params;
   const id = Number(essayId);
 
-  if (!Number.isInteger(id)) {
+  if (!Number.isInteger(id) || id <= 0) {
     notFound();
   }
 

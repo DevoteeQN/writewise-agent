@@ -1,166 +1,230 @@
-import { PrismaClient } from './generated/client';
-import { PrismaPg } from "@prisma/adapter-pg"
-import bcrypt from 'bcryptjs';
+import { PrismaClient } from "./generated/client";
+import { PrismaPg } from "@prisma/adapter-pg";
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
 
+const prompts = [
+  {
+    title: "Should Schools Limit Smartphone Use?",
+    category: "Argumentative Writing",
+    difficulty: "Beginner",
+    targetSkill: "thesis statement",
+    wordLimit: 350,
+    estimatedMinutes: 25,
+    content:
+      "Write an argumentative essay explaining whether schools should limit smartphone use during the school day. Take a clear position and support it with reasons.",
+  },
+  {
+    title: "The Value of Learning a Second Language",
+    category: "Opinion Essay",
+    difficulty: "Beginner",
+    targetSkill: "paragraph structure",
+    wordLimit: 300,
+    estimatedMinutes: 20,
+    content:
+      "Write an opinion essay about whether every student should learn a second language. Include an introduction, two body paragraphs, and a conclusion.",
+  },
+  {
+    title: "A Strong Academic Paragraph About Online Learning",
+    category: "Academic Paragraph",
+    difficulty: "Beginner",
+    targetSkill: "coherence",
+    wordLimit: 180,
+    estimatedMinutes: 15,
+    content:
+      "Write one academic paragraph explaining one advantage or disadvantage of online learning. Use a topic sentence, supporting details, and a concluding sentence.",
+  },
+  {
+    title: "Reducing Food Waste in Cities",
+    category: "Problem Solution",
+    difficulty: "Intermediate",
+    targetSkill: "evidence development",
+    wordLimit: 450,
+    estimatedMinutes: 35,
+    content:
+      "Write a problem-solution essay about food waste in cities. Explain the problem, describe at least two practical solutions, and discuss why they could work.",
+  },
+  {
+    title: "Public Transportation and Private Cars",
+    category: "Compare and Contrast",
+    difficulty: "Intermediate",
+    targetSkill: "coherence",
+    wordLimit: 400,
+    estimatedMinutes: 30,
+    content:
+      "Compare and contrast public transportation and private cars for daily commuting. Organize your ideas clearly and use transition language.",
+  },
+  {
+    title: "Should Homework Be Optional?",
+    category: "Argumentative Writing",
+    difficulty: "Beginner",
+    targetSkill: "evidence development",
+    wordLimit: 350,
+    estimatedMinutes: 25,
+    content:
+      "Write an argumentative essay about whether homework should be optional. Support your claim with examples from school or personal experience.",
+  },
+  {
+    title: "The Best Way to Build a Reading Habit",
+    category: "Opinion Essay",
+    difficulty: "Beginner",
+    targetSkill: "lexical variety",
+    wordLimit: 300,
+    estimatedMinutes: 20,
+    content:
+      "Write an opinion essay explaining the best way for students to build a regular reading habit. Use varied vocabulary and clear examples.",
+  },
+  {
+    title: "Academic Paragraph About Group Projects",
+    category: "Academic Paragraph",
+    difficulty: "Beginner",
+    targetSkill: "grammar accuracy",
+    wordLimit: 180,
+    estimatedMinutes: 15,
+    content:
+      "Write one academic paragraph about the benefits or challenges of group projects. Focus on accurate sentence structure and verb agreement.",
+  },
+  {
+    title: "Improving Air Quality Near Schools",
+    category: "Problem Solution",
+    difficulty: "Intermediate",
+    targetSkill: "paragraph structure",
+    wordLimit: 450,
+    estimatedMinutes: 35,
+    content:
+      "Write a problem-solution essay about poor air quality near schools. Describe causes, propose solutions, and explain the expected impact.",
+  },
+  {
+    title: "Studying Alone and Studying With Others",
+    category: "Compare and Contrast",
+    difficulty: "Beginner",
+    targetSkill: "coherence",
+    wordLimit: 350,
+    estimatedMinutes: 25,
+    content:
+      "Compare studying alone with studying in a group. Explain the strengths and weaknesses of each approach and state which you prefer.",
+  },
+  {
+    title: "Should Universities Require Internships?",
+    category: "Argumentative Writing",
+    difficulty: "Advanced",
+    targetSkill: "thesis statement",
+    wordLimit: 550,
+    estimatedMinutes: 45,
+    content:
+      "Write an argumentative essay about whether universities should require internships before graduation. Present a precise thesis and address a counterargument.",
+  },
+  {
+    title: "Why Creativity Matters in Education",
+    category: "Opinion Essay",
+    difficulty: "Intermediate",
+    targetSkill: "evidence development",
+    wordLimit: 400,
+    estimatedMinutes: 30,
+    content:
+      "Write an opinion essay about the role of creativity in education. Support your view with examples from classroom learning, projects, or future careers.",
+  },
+  {
+    title: "Academic Paragraph About Time Management",
+    category: "Academic Paragraph",
+    difficulty: "Beginner",
+    targetSkill: "paragraph structure",
+    wordLimit: 180,
+    estimatedMinutes: 15,
+    content:
+      "Write one academic paragraph explaining why time management is important for students. Include one clear controlling idea and supporting details.",
+  },
+  {
+    title: "Solving Noise Pollution in Neighborhoods",
+    category: "Problem Solution",
+    difficulty: "Intermediate",
+    targetSkill: "coherence",
+    wordLimit: 450,
+    estimatedMinutes: 35,
+    content:
+      "Write a problem-solution essay about noise pollution in residential neighborhoods. Explain who is affected and propose realistic community solutions.",
+  },
+  {
+    title: "Printed Books and E-books",
+    category: "Compare and Contrast",
+    difficulty: "Beginner",
+    targetSkill: "lexical variety",
+    wordLimit: 350,
+    estimatedMinutes: 25,
+    content:
+      "Compare and contrast printed books and e-books. Use varied vocabulary to describe convenience, cost, reading experience, and accessibility.",
+  },
+  {
+    title: "Should Students Choose Their Own Courses?",
+    category: "Argumentative Writing",
+    difficulty: "Intermediate",
+    targetSkill: "thesis statement",
+    wordLimit: 450,
+    estimatedMinutes: 35,
+    content:
+      "Write an argumentative essay about whether students should have more freedom to choose their own courses. State your position clearly and support it.",
+  },
+  {
+    title: "The Importance of Sleep for Learning",
+    category: "Opinion Essay",
+    difficulty: "Beginner",
+    targetSkill: "grammar accuracy",
+    wordLimit: 300,
+    estimatedMinutes: 20,
+    content:
+      "Write an opinion essay explaining why sleep is important for learning. Focus on clear grammar, complete sentences, and logical paragraphing.",
+  },
+  {
+    title: "Academic Paragraph About Digital Privacy",
+    category: "Academic Paragraph",
+    difficulty: "Intermediate",
+    targetSkill: "evidence development",
+    wordLimit: 220,
+    estimatedMinutes: 20,
+    content:
+      "Write one academic paragraph explaining why digital privacy matters. Include a topic sentence, a concrete example, and analysis.",
+  },
+  {
+    title: "Helping New Students Adjust",
+    category: "Problem Solution",
+    difficulty: "Beginner",
+    targetSkill: "paragraph structure",
+    wordLimit: 350,
+    estimatedMinutes: 25,
+    content:
+      "Write a problem-solution essay about how schools can help new students adjust. Describe common challenges and propose practical support.",
+  },
+  {
+    title: "City Life and Small-Town Life",
+    category: "Compare and Contrast",
+    difficulty: "Intermediate",
+    targetSkill: "coherence",
+    wordLimit: 400,
+    estimatedMinutes: 30,
+    content:
+      "Compare and contrast city life and small-town life. Organize your essay around clear points such as opportunities, cost, community, and pace.",
+  },
+];
+
 async function main() {
-  // Create 5 users with hashed passwords
-  const users = await Promise.all([
-    prisma.user.create({
-      data: {
-        email: 'alice@example.com',
-        name: 'Alice',
-        password: await bcrypt.hash('password123', 10),
-      },
-    }),
-    prisma.user.create({
-      data: {
-        email: 'bob@example.com',
-        name: 'Bob',
-        password: await bcrypt.hash('password123', 10),
-      },
-    }),
-    prisma.user.create({
-      data: {
-        email: 'charlie@example.com',
-        name: 'Charlie',
-        password: await bcrypt.hash('password123', 10),
-      },
-    }),
-    prisma.user.create({
-      data: {
-        email: 'diana@example.com',
-        name: 'Diana',
-        password: await bcrypt.hash('password123', 10),
-      },
-    }),
-    prisma.user.create({
-      data: {
-        email: 'edward@example.com',
-        name: 'Edward',
-        password: await bcrypt.hash('password123', 10),
-      },
-    }),
-  ]);
+  for (const prompt of prompts) {
+    await prisma.writingPrompt.upsert({
+      where: { title: prompt.title },
+      update: prompt,
+      create: prompt,
+    });
+  }
 
-  const userIdMapping = {
-    alice: users[0].id,
-    bob: users[1].id,
-    charlie: users[2].id,
-    diana: users[3].id,
-    edward: users[4].id,
-  };
-
-  // Create 15 posts distributed among users
-  await prisma.post.createMany({
-    data: [
-      // Alice's posts
-      {
-        title: 'Getting Started with TypeScript and Prisma',
-        content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce id erat a lorem tincidunt ultricies. Vivamus porta bibendum nulla vel accumsan.',
-        published: true,
-        authorId: userIdMapping.alice
-      },
-      {
-        title: 'How ORMs Simplify Complex Queries',
-        content: 'Duis sagittis urna ut sapien tristique convallis. Aenean vel ligula felis. Phasellus bibendum sem at elit dictum volutpat.',
-        published: false,
-        authorId: userIdMapping.alice
-      },
-
-      // Bob's posts
-      {
-        title: 'Mastering Prisma: Efficient Database Migrations',
-        content: 'Ut ullamcorper nec erat id auctor. Nullam nec ligula in ex feugiat tincidunt. Cras accumsan vehicula tortor ut eleifend.',
-        published: true,
-        authorId: userIdMapping.bob
-      },
-      {
-        title: 'Best Practices for Type Safety in ORMs',
-        content: 'Aliquam erat volutpat. Suspendisse potenti. Maecenas fringilla elit vel eros laoreet, et tempor sapien vulputate.',
-        published: true,
-        authorId: userIdMapping.bob
-      },
-      {
-        title: 'TypeScript Utility Types for Database Models',
-        content: 'Donec ac magna facilisis, vestibulum ligula at, elementum nisl. Morbi volutpat eget velit eu egestas.',
-        published: false,
-        authorId: userIdMapping.bob
-      },
-
-      // Charlie's posts (no posts for Charlie)
-
-      // Diana's posts
-      {
-        title: 'Exploring Database Indexes and Their Performance Impact',
-        content: 'Vivamus ac velit tincidunt, sollicitudin erat quis, fringilla enim. Aenean posuere est a risus placerat suscipit.',
-        published: true,
-        authorId: userIdMapping.diana
-      },
-      {
-        title: 'Choosing the Right Database for Your TypeScript Project',
-        content: 'Sed vel suscipit lorem. Duis et arcu consequat, sagittis justo quis, pellentesque risus. Curabitur sed consequat est.',
-        published: false,
-        authorId: userIdMapping.diana
-      },
-      {
-        title: 'Designing Scalable Schemas with Prisma',
-        content: 'Phasellus ut erat nec elit ultricies egestas. Vestibulum rhoncus urna eget magna varius pharetra.',
-        published: true,
-        authorId: userIdMapping.diana
-      },
-      {
-        title: 'Handling Relations Between Models in ORMs',
-        content: 'Integer luctus ac augue at tristique. Curabitur varius nisl vitae mi fringilla, vel tincidunt nunc dictum.',
-        published: false,
-        authorId: userIdMapping.diana
-      },
-
-      // Edward's posts
-      {
-        title: 'Why TypeORM Still Has Its Place in 2025',
-        content: 'Morbi non arcu nec velit cursus feugiat sit amet sit amet mi. Etiam porttitor ligula id sem molestie, in tempor arcu bibendum.',
-        published: true,
-        authorId: userIdMapping.edward
-      },
-      {
-        title: 'NoSQL vs SQL: The Definitive Guide for Developers',
-        content: 'Suspendisse a ligula sit amet risus ullamcorper tincidunt. Curabitur tincidunt, sapien id fringilla auctor, risus libero gravida odio, nec volutpat libero orci nec lorem.',
-        published: true,
-        authorId: userIdMapping.edward
-      },
-      {
-        title: 'Optimizing Queries with Prisma\'s Select and Include',
-        content: 'Proin vel diam vel nisi facilisis malesuada. Sed vitae diam nec magna mollis commodo a vitae nunc.',
-        published: false,
-        authorId: userIdMapping.edward
-      },
-      {
-        title: 'PostgreSQL Optimizations Every Developer Should Know',
-        content: 'Nullam mollis quam sit amet lacus interdum, at suscipit libero pellentesque. Suspendisse in mi vitae magna finibus pretium.',
-        published: true,
-        authorId: userIdMapping.edward
-      },
-      {
-        title: 'Scaling Applications with Partitioned Tables in PostgreSQL',
-        content: 'Cras vitae tortor in mauris tristique elementum non id ipsum. Nunc vitae pulvinar purus.',
-        published: true,
-        authorId: userIdMapping.edward
-      },
-    ],
-  });
-
-  console.log('Seeding completed.');
+  console.log(`Seeded ${prompts.length} writing prompts.`);
 }
 
 main()
   .then(async () => {
     await prisma.$disconnect();
   })
-  .catch(async (e) => {
-    console.error(e);
+  .catch(async (error) => {
+    console.error(error);
     await prisma.$disconnect();
     process.exit(1);
   });

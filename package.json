@@ -1,6 +1,7 @@
 {
-  "name": "my-nextjs-app",
+  "name": "writewise-agent",
   "version": "0.1.0",
+  "description": "AI agent coding competition project based on the Prisma Next.js Auth Starter.",
   "private": true,
   "scripts": {
     "dev": "next dev",

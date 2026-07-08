@@ -1,57 +1,68 @@
-export const dynamic = "force-dynamic"; // This disables SSG and ISR
-
-import prisma from "@/lib/prisma";
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { checkPostTableExists } from "@/lib/db-utils";
 
-export default async function Home() {
-  // Check if the post table exists
-  const tableExists = await checkPostTableExists();
-
-  // If the post table doesn't exist, redirect to setup page
-  if (!tableExists) {
-    redirect("/setup");
-  }
-
-  const posts = await prisma.post.findMany({
-    orderBy: {
-      createdAt: "desc",
-    },
-    take: 6,
-    include: {
-      author: {
-        select: {
-          name: true,
-        },
-      },
-    },
-  });
-
+export default function Home() {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center py-24 px-8">
-      <h1 className="text-5xl font-extrabold mb-12 text-[#333333]">Recent Posts</h1>
-      <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 w-full max-w-6xl mb-8">
-        {posts.map((post) => (
-          <Link key={post.id} href={`/posts/${post.id}`} className="group">
-            <div className="border rounded-lg shadow-md bg-white p-6 hover:shadow-lg transition-shadow duration-300">
-              <h2 className="text-2xl font-semibold text-gray-900 group-hover:underline mb-2">{post.title}</h2>
-              <p className="text-sm text-gray-500">by {post.author ? post.author.name : "Anonymous"}</p>
-              <p className="text-xs text-gray-400 mb-4">
-                {new Date(post.createdAt).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </p>
-              <div className="relative">
-                <p className="text-gray-700 leading-relaxed line-clamp-2">{post.content || "No content available."}</p>
-                <div className="absolute bottom-0 left-0 w-full h-12 bg-linear-to-t from-gray-50 to-transparent" />
-              </div>
-            </div>
-          </Link>
-        ))}
-      </div>
+    <div className="min-h-screen bg-gray-50 px-8 py-16">
+      <section className="mx-auto flex w-full max-w-6xl flex-col gap-10">
+        <div className="max-w-3xl">
+          <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-blue-600">
+            Writing practice for focused improvement
+          </p>
+          <h1 className="text-5xl font-extrabold text-gray-900">
+            WriteWise Agent
+          </h1>
+          <p className="mt-5 text-xl leading-8 text-gray-700">
+            Choose a writing prompt, draft an essay, and build a history of
+            practice submissions. Phase 2 adds the first original writing
+            domain: prompt bank, essay editor, and authenticated essay history.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link
+              href="/prompts"
+              className="rounded-md bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700"
+            >
+              Browse Prompts
+            </Link>
+            <Link
+              href="/dashboard"
+              className="rounded-md border border-gray-300 bg-white px-5 py-3 text-sm font-semibold text-gray-800 hover:bg-gray-100"
+            >
+              Open Dashboard
+            </Link>
+          </div>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-3">
+          <div className="rounded-lg border bg-white p-6 shadow-sm">
+            <h2 className="text-xl font-semibold text-gray-900">
+              Prompt Bank
+            </h2>
+            <p className="mt-3 text-gray-600">
+              Practice with targeted English writing prompts across argument,
+              opinion, academic paragraph, problem-solution, and comparison
+              tasks.
+            </p>
+          </div>
+          <div className="rounded-lg border bg-white p-6 shadow-sm">
+            <h2 className="text-xl font-semibold text-gray-900">
+              Essay Editor
+            </h2>
+            <p className="mt-3 text-gray-600">
+              Write against a selected prompt with basic validation and an
+              approximate word count before submission.
+            </p>
+          </div>
+          <div className="rounded-lg border bg-white p-6 shadow-sm">
+            <h2 className="text-xl font-semibold text-gray-900">
+              Private History
+            </h2>
+            <p className="mt-3 text-gray-600">
+              Your submissions are linked to your account, and essay detail
+              pages only load for the owner.
+            </p>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

@@ -18,16 +18,37 @@ model User {
   name     String?
   email    String  @unique
   password String
-  posts    Post[]
+  essays   Essay[]
 }
 
-model Post {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  title     String
-  content   String?
-  published Boolean  @default(false)
-  authorId  String?
-  author    User?    @relation(fields: [authorId], references: [id])
+model WritingPrompt {
+  id               Int      @id @default(autoincrement())
+  title            String   @unique
+  category         String
+  difficulty       String
+  targetSkill      String
+  wordLimit        Int
+  estimatedMinutes Int
+  content          String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  essays           Essay[]
+}
+
+model Essay {
+  id          Int      @id @default(autoincrement())
+  userId      String
+  promptId    Int
+  title       String
+  content     String
+  status      String   @default("submitted")
+  wordCount   Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  submittedAt DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prompt      WritingPrompt @relation(fields: [promptId], references: [id], onDelete: Restrict)
+
+  @@index([userId])
+  @@index([promptId])
 }

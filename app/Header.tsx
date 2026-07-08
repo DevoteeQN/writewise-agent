@@ -10,22 +10,28 @@ export default function Header() {
     <header className="w-full bg-white shadow-md py-4 px-8">
       <nav className="flex justify-between items-center">
         <Link href="/" className="text-xl font-bold text-gray-800 hover:text-blue-600 transition-colors">
-          Superblog
+          WriteWise Agent
         </Link>
         <div className="flex items-center space-x-4">
-          <Link 
-            href="/posts" 
+          <Link
+            href="/prompts"
             className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
           >
-            Posts
+            Prompts
           </Link>
           {session ? (
             <>
-              <Link 
-                href="/posts/new" 
+              <Link
+                href="/dashboard"
                 className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
               >
-                New Post
+                Dashboard
+              </Link>
+              <Link
+                href="/essays"
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
+              >
+                Essays
               </Link>
               <div className="flex items-center space-x-4">
                 <div className="text-sm text-gray-500">

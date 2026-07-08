@@ -8,8 +8,8 @@ export default function SetupSteps() {
           Getting Started
         </h2>
         <p className="text-gray-600 mb-4">
-          Follow these steps to set up your Next.js & Prisma Postgres Auth
-          Starter:
+          Follow these steps to set up WriteWise Agent with the inherited
+          Next.js, Prisma Postgres, and NextAuth foundation:
         </p>
       </section>
 
@@ -73,7 +73,7 @@ export default function SetupSteps() {
           To ensure your authentication works properly, you&apos;ll also need to
           set env vars for NextAuth.js:
         </p>
-        <CodeBlock code={`AUTH_SECRET="RANDOM_32_CHARACTER_STRING"`} />
+        <CodeBlock code={`AUTH_SECRET="YOUR_RANDOM_AUTH_SECRET"`} />
         <p className="text-gray-600 mb-3 mt-3">
           You can generate a random 32 character string for the{" "}
           <code>AUTH_SECRET</code> with this command:

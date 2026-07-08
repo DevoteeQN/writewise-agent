@@ -56,7 +56,7 @@ function PostsList() {
       ) : (
         <>
           {posts.length === 0 ? (
-            <p className="text-gray-600">No posts available.</p>
+            <p className="text-gray-600">No writing samples available.</p>
           ) : (
             <ul className="space-y-6 w-full max-w-4xl mx-auto">
               {posts.map((post) => (
@@ -99,6 +99,9 @@ function PostsList() {
 export default function PostsPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-start p-8">
+      <h1 className="mb-8 text-4xl font-bold text-gray-900">
+        Writing Samples
+      </h1>
       <Suspense
         fallback={
           <div className="flex items-center justify-center min-h-screen">

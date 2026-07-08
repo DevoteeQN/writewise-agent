@@ -20,3 +20,14 @@ client components or committed to the repository.
 
 When `AI_PROVIDER` is missing, the app uses the deterministic mock provider so
 local development remains available without a real AI key.
+
+## Training Plan Safety
+
+Training plans are generated from already-saved AI feedback rather than raw
+essay text. The plan prompt still treats feedback content as untrusted, asks for
+JSON only, and validates the response with a strict Zod schema before database
+storage.
+
+Plan pages and completion actions require authentication. Plan and task updates
+are scoped through `TrainingPlan.userId`, so users cannot view or update another
+user's plan items by guessing ids.

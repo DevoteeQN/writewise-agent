@@ -1,12 +1,17 @@
 "use server";
 
 import { generateAIFeedback } from "@/lib/ai-feedback/service";
+import { generateTrainingPlan } from "@/lib/training-plan/service";
 import { requireUserId } from "@/lib/session";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 export type GenerateFeedbackState = {
+  error?: string;
+};
+
+export type GenerateTrainingPlanState = {
   error?: string;
 };
 
@@ -97,4 +102,111 @@ export async function generateFeedbackForEssay(
 
   revalidatePath(`/essays/${essayId}`);
   redirect(`/essays/${essayId}`);
+}
+
+function parseWeaknessTags(value: unknown) {
+  return Array.isArray(value)
+    ? value.filter((tag): tag is string => typeof tag === "string")
+    : [];
+}
+
+export async function generateTrainingPlanForEssay(
+  essayId: number,
+  _previousState: GenerateTrainingPlanState
+): Promise<GenerateTrainingPlanState> {
+  void _previousState;
+  const userId = await requireUserId();
+  let planId: number;
+
+  try {
+    const essay = await prisma.essay.findFirst({
+      where: {
+        id: essayId,
+        userId,
+      },
+      include: {
+        prompt: true,
+        feedbacks: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+        },
+      },
+    });
+
+    if (!essay) {
+      return { error: "Essay not found." };
+    }
+
+    const latestFeedback = essay.feedbacks[0];
+
+    if (!latestFeedback) {
+      return { error: "Generate AI feedback before creating a training plan." };
+    }
+
+    const existingPlan = await prisma.trainingPlan.findFirst({
+      where: {
+        userId,
+        sourceFeedbackId: latestFeedback.id,
+        status: "active",
+      },
+      select: { id: true },
+    });
+
+    if (existingPlan) {
+      planId = existingPlan.id;
+    } else {
+      const result = await generateTrainingPlan({
+        essayTitle: essay.title,
+        promptTitle: essay.prompt.title,
+        promptCategory: essay.prompt.category,
+        overallScore: latestFeedback.overallScore,
+        summary: latestFeedback.summary,
+        weaknessTags: parseWeaknessTags(latestFeedback.weaknessTagsJson),
+        nextExercise: latestFeedback.nextExercise,
+      });
+
+      const createdPlan = await prisma.$transaction(async (tx) => {
+        const plan = await tx.trainingPlan.create({
+          data: {
+            userId,
+            sourceEssayId: essay.id,
+            sourceFeedbackId: latestFeedback.id,
+            title: result.plan.title,
+            level: result.plan.level,
+            focusSummary: result.plan.focusSummary,
+            status: "active",
+          },
+          select: { id: true },
+        });
+
+        await tx.trainingPlanItem.createMany({
+          data: result.plan.weeks.flatMap((week) =>
+            week.days.map((day) => ({
+              planId: plan.id,
+              week: week.week,
+              day: day.day,
+              theme: week.theme,
+              taskTitle: day.taskTitle,
+              taskDescription: day.taskDescription,
+              targetSkill: day.targetSkill,
+              estimatedMinutes: day.estimatedMinutes,
+            }))
+          ),
+        });
+
+        return plan;
+      });
+
+      planId = createdPlan.id;
+    }
+  } catch (error) {
+    console.error("Training plan generation failed:", error);
+    return {
+      error: "We could not generate a training plan right now. Please try again later.",
+    };
+  }
+
+  revalidatePath(`/essays/${essayId}`);
+  revalidatePath("/plans");
+  redirect(`/plans/${planId}`);
 }

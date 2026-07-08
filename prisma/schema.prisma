@@ -19,6 +19,7 @@ model User {
   email    String  @unique
   password String
   essays   Essay[]
+  trainingPlans TrainingPlan[]
 }
 
 model WritingPrompt {
@@ -49,6 +50,7 @@ model Essay {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   prompt      WritingPrompt @relation(fields: [promptId], references: [id], onDelete: Restrict)
   feedbacks   AIFeedback[]
+  sourceTrainingPlans TrainingPlan[]
 
   @@index([userId])
   @@index([promptId])
@@ -72,6 +74,48 @@ model AIFeedback {
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
   essay                Essay    @relation(fields: [essayId], references: [id], onDelete: Cascade)
+  sourceTrainingPlans  TrainingPlan[]
 
   @@index([essayId])
+}
+
+model TrainingPlan {
+  id               Int      @id @default(autoincrement())
+  userId           String
+  sourceEssayId    Int?
+  sourceFeedbackId Int?
+  title            String
+  level            String
+  focusSummary     String
+  status           String   @default("active")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sourceEssay      Essay?   @relation(fields: [sourceEssayId], references: [id], onDelete: SetNull)
+  sourceFeedback   AIFeedback? @relation(fields: [sourceFeedbackId], references: [id], onDelete: SetNull)
+  items            TrainingPlanItem[]
+
+  @@index([userId])
+  @@index([sourceEssayId])
+  @@index([sourceFeedbackId])
+}
+
+model TrainingPlanItem {
+  id               Int       @id @default(autoincrement())
+  planId           Int
+  week             Int
+  day              Int
+  theme            String
+  taskTitle        String
+  taskDescription  String
+  targetSkill      String
+  estimatedMinutes Int
+  completed        Boolean   @default(false)
+  completedAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  plan             TrainingPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@index([planId])
+  @@unique([planId, week, day])
 }

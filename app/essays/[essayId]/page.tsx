@@ -4,7 +4,9 @@ import prisma from "@/lib/prisma";
 import { sentenceFeedbackSchema } from "@/lib/ai-feedback/schema";
 import { requireUserId } from "@/lib/session";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import FeedbackForm from "./feedback-form";
+import TrainingPlanForm from "./training-plan-form";
 
 function parseSentenceFeedback(value: unknown) {
   const parsed = sentenceFeedbackSchema.array().safeParse(value);
@@ -39,6 +41,16 @@ export default async function EssayDetailPage({
       prompt: true,
       feedbacks: {
         orderBy: { createdAt: "desc" },
+        include: {
+          sourceTrainingPlans: {
+            where: {
+              userId,
+              status: "active",
+            },
+            orderBy: { createdAt: "desc" },
+            take: 1,
+          },
+        },
       },
     },
   });
@@ -48,6 +60,7 @@ export default async function EssayDetailPage({
   }
 
   const latestFeedback = essay.feedbacks[0];
+  const existingPlan = latestFeedback?.sourceTrainingPlans[0];
   const sentenceFeedback = latestFeedback
     ? parseSentenceFeedback(latestFeedback.sentenceFeedbackJson)
     : [];
@@ -179,6 +192,38 @@ export default async function EssayDetailPage({
               <FeedbackSection title="Next Exercise">
                 <p>{latestFeedback.nextExercise}</p>
               </FeedbackSection>
+            </div>
+          )}
+        </section>
+
+        <section className="mt-8 rounded-lg border bg-green-50 p-5">
+          <h2 className="text-xl font-semibold text-gray-900">
+            Personalized Training Plan
+          </h2>
+          {!latestFeedback ? (
+            <p className="mt-2 text-gray-700">
+              Generate AI feedback first. WriteWise Agent uses the latest
+              feedback weakness tags to create a focused 4-week plan.
+            </p>
+          ) : existingPlan ? (
+            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-gray-700">
+                A training plan already exists for the latest feedback.
+              </p>
+              <Link
+                href={`/plans/${existingPlan.id}`}
+                className="rounded-md bg-green-600 px-5 py-3 text-sm font-semibold text-white hover:bg-green-700"
+              >
+                View Training Plan
+              </Link>
+            </div>
+          ) : (
+            <div className="mt-4">
+              <p className="mb-4 text-gray-700">
+                Create a structured 4-week plan with 5 practice days per week
+                based on your latest AI feedback.
+              </p>
+              <TrainingPlanForm essayId={essay.id} />
             </div>
           )}
         </section>

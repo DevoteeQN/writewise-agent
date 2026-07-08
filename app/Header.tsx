@@ -33,6 +33,12 @@ export default function Header() {
               >
                 Essays
               </Link>
+              <Link
+                href="/plans"
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
+              >
+                Plans
+              </Link>
               <div className="flex items-center space-x-4">
                 <div className="text-sm text-gray-500">
                   {session.user?.name && <div>{session.user.name}</div>}

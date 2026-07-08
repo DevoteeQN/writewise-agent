@@ -6,7 +6,8 @@ WriteWise Agent is an AI agent coding competition project based on the
 Phase 1 rebranded the starter. Phase 2 replaced the starter blog/post demo with
 the first original writing-training increment: an authenticated writing prompt
 bank, essay editor, and private essay history. Phase 3 adds structured AI essay
-feedback with a safe mock provider for local development.
+feedback with a safe mock provider for local development. Phase 4 adds a
+personalized 4-week training plan generated from saved AI feedback.
 
 ## Phase 2 Features
 
@@ -28,6 +29,17 @@ feedback with a safe mock provider for local development.
 - Optional OpenAI-compatible provider through server-side environment variables
 - Strict Zod validation before AI output is saved
 - Prompt-injection mitigation using system instructions and essay delimiters
+
+## Phase 4 Features
+
+- Personalized 4-week training plan generation from the latest AI feedback
+- Exactly 4 weeks with 5 practice days per week
+- Plan progress tracking through completed and uncompleted tasks
+- Deterministic mock plan provider for local demos
+- Optional OpenAI-compatible plan provider through the existing AI environment
+  variables
+- Owner-only plan access and task updates
+- Zod validation before generated plans are saved
 
 ## Reused Foundation
 
@@ -77,6 +89,12 @@ Apply the Phase 3 migration:
 npx prisma migrate dev --name ai_feedback
 ```
 
+Apply the Phase 4 migration:
+
+```bash
+npx prisma migrate dev --name training_plan
+```
+
 Seed the prompt bank:
 
 ```bash
@@ -103,6 +121,8 @@ Phase 2 validation results are recorded in
 [`docs/agent-logs/02-writing-core.md`](docs/agent-logs/02-writing-core.md).
 Phase 3 validation results are recorded in
 [`docs/agent-logs/03-ai-feedback.md`](docs/agent-logs/03-ai-feedback.md).
+Phase 4 validation results are recorded in
+[`docs/agent-logs/04-training-plan.md`](docs/agent-logs/04-training-plan.md).
 
 ## AI Safety
 
@@ -113,3 +133,7 @@ OpenAI-compatible feedback requires `OPENAI_API_KEY` on the server.
 Provider output is validated with Zod before being stored. Essay content is
 wrapped in clear delimiters and treated only as content to evaluate, not as
 instructions. See [`SECURITY.md`](SECURITY.md) for details.
+
+Training plans are generated from saved AI feedback, validated with Zod, stored
+as structured records, and scoped to the authenticated owner for viewing and
+task updates.
